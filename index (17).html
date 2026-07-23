@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a6f68" />
+  <meta name="description" content="Персональний підбір стоматологічного обладнання SOCO та COXO під задачі вашої практики." />
+  <title>Підбір стоматологічного обладнання — SOCO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" href="https://soco.com.ua/" aria-label="SOCO — на головну">
+        <span class="brand-mark">SOCO</span>
+        <span class="brand-caption">DENTAL EQUIPMENT</span>
+      </a>
+
+      <div class="header-actions">
+        <span class="header-badge">
+          <span class="status-dot" aria-hidden="true"></span>
+          Безкоштовний підбір
+        </span>
+        <a class="header-phone" href="tel:+380631560365">+38 (063) 156 03 65</a>
+      </div>
+    </header>
+
+    <main class="main-layout">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="eyebrow">Підбір за 60 секунд</div>
+        <h1 id="hero-title">Підберемо обладнання під задачі вашої клініки</h1>
+        <p class="hero-copy">
+          Дайте відповіді на декілька запитань — менеджер SOCO запропонує релевантні моделі,
+          порівняє комплектації та підкаже умови придбання.
+        </p>
+
+        <div class="benefits" aria-label="Переваги підбору">
+          <div class="benefit-item">
+            <span class="benefit-icon" aria-hidden="true">✓</span>
+            <div><strong>Офіційна гарантія</strong><span>Сервіс в Україні</span></div>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon" aria-hidden="true">✓</span>
+            <div><strong>Тестування обладнання</strong><span>У шоурумі SOCO</span></div>
+          </div>
+          <div class="benefit-item">
+            <span class="benefit-icon" aria-hidden="true">✓</span>
+            <div><strong>Без зайвих функцій</strong><span>Підбір під ваш протокол</span></div>
+          </div>
+        </div>
+
+        <div class="visual-stage" aria-hidden="true">
+          <div class="stage-grid"></div>
+          <div class="device device-main">
+            <div class="device-screen"><span></span><span></span><span></span></div>
+            <div class="device-body"></div>
+            <div class="device-base"></div>
+          </div>
+          <div class="floating-card floating-card-top">
+            <span class="floating-label">Категорії</span>
+            <strong>6 напрямів</strong>
+          </div>
+          <div class="floating-card floating-card-bottom">
+            <span class="floating-label">Результат</span>
+            <strong>2–3 моделі</strong>
+          </div>
+          <div class="brand-orbit">COXO <span>×</span> SOCO</div>
+        </div>
+      </section>
+
+      <section class="quiz-panel" aria-label="Квіз підбору обладнання">
+        <div class="quiz-topbar">
+          <button class="back-button" id="backButton" type="button" aria-label="Повернутися до попереднього кроку" hidden>
+            <span aria-hidden="true">←</span> Назад
+          </button>
+          <div class="step-counter" id="stepCounter">Крок 1 з 7</div>
+        </div>
+
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div id="quizContent" class="quiz-content" aria-live="polite"></div>
+
+        <div class="quiz-footer">
+          <span class="privacy-note">Використаємо дані лише для консультації</span>
+          <span class="secure-note"><span aria-hidden="true">⌁</span> Захищена форма</span>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>© 2026 SOCO. Стоматологічне обладнання.</span>
+      <a href="https://soco.com.ua/" target="_blank" rel="noreferrer">Перейти на soco.com.ua</a>
+    </footer>
+  </div>
+
+  <noscript>Для роботи квізу потрібно увімкнути JavaScript.</noscript>
+  <script src="./js/config.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
