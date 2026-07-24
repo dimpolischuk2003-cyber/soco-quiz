@@ -889,7 +889,7 @@ window.SOCO_QUIZ_CONFIG = {
   privacyUrl: "https://soco.com.ua/privacy",
   company: "SOCO",
   metaPixelId: "1706185430432012",
-  demoMode: true
+  demoMode: false
 };
 
   </script>
@@ -1096,7 +1096,7 @@ window.SOCO_QUIZ_CONFIG = {
 
   function getMetaCommonParams() {
     return {
-      quiz_version: "2.4",
+      quiz_version: "2.5",
       category: state.answers.category || "not_selected",
       step_number: state.currentStep + 1,
       utm_source: state.utm.utm_source || "",
@@ -1506,7 +1506,9 @@ window.SOCO_QUIZ_CONFIG = {
           body: JSON.stringify(payload)
         });
         result = await response.json().catch(() => ({}));
-        if (!response.ok || result.success === false) throw new Error(result.message || "Не вдалося надіслати заявку");
+        if (!response.ok || result.success !== true || result.saved !== true) {
+          throw new Error(result.message || "Не вдалося зберегти заявку");
+        }
       }
 
       track("quiz_submit", {
@@ -1518,7 +1520,7 @@ window.SOCO_QUIZ_CONFIG = {
         meta_event_id: state.leadEventId
       });
 
-      if (!result.demo) {
+      if (result.saved === true) {
         metaTrackStandard("Lead", {
           content_name: "SOCO equipment quiz",
           content_category: getCategory()?.label || state.answers.category,
