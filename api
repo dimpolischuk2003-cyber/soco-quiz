@@ -1,1 +1,176 @@
+const MAX_BODY_LENGTH = 30_000;
+const N8N_TIMEOUT_MS = 12_000;
 
+function clean(value, maxLength = 500) {
+  return String(value ?? "").trim().slice(0, maxLength);
+}
+
+function json(res, status, payload) {
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "no-store");
+  return res.status(status).json(payload);
+}
+
+module.exports = async function handler(req, res) {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return json(res, 405, {
+      success: false,
+      saved: false,
+      message: "Method not allowed",
+    });
+  }
+
+  const webhookUrl = process.env.N8N_WEBHOOK_URL;
+  const webhookSecret = process.env.LEAD_WEBHOOK_SECRET;
+
+  if (!webhookUrl || !webhookSecret) {
+    console.error("SOCO lead API: missing N8N_WEBHOOK_URL or LEAD_WEBHOOK_SECRET");
+    return json(res, 503, {
+      success: false,
+      saved: false,
+      message: "Lead service is not configured",
+    });
+  }
+
+  try {
+    const rawBody =
+      typeof req.body === "string"
+        ? req.body
+        : JSON.stringify(req.body ?? {});
+
+    if (rawBody.length > MAX_BODY_LENGTH) {
+      return json(res, 413, {
+        success: false,
+        saved: false,
+        message: "Payload is too large",
+      });
+    }
+
+    const input =
+      typeof req.body === "string"
+        ? JSON.parse(req.body)
+        : req.body ?? {};
+
+    // Honeypot. The frontend keeps this field invisible to real users.
+    if (clean(input.website, 200)) {
+      return json(res, 200, {
+        success: true,
+        saved: false,
+        ignored: true,
+      });
+    }
+
+    const name = clean(input.name, 120);
+    const phone = clean(input.phone, 40);
+    const category = clean(input.category, 120);
+    const categoryLabel = clean(input.categoryLabel || input.category, 200);
+    const need = clean(input.need, 1000);
+    const budget = clean(input.budget, 200);
+    const timing = clean(input.timing, 200);
+
+    const missing = [
+      ["name", name],
+      ["phone", phone],
+      ["category", category],
+      ["need", need],
+      ["budget", budget],
+      ["timing", timing],
+    ]
+      .filter(([, value]) => !value)
+      .map(([field]) => field);
+
+    if (missing.length) {
+      return json(res, 400, {
+        success: false,
+        saved: false,
+        message: `Missing fields: ${missing.join(", ")}`,
+      });
+    }
+
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phoneDigits.length < 9 || phoneDigits.length > 15) {
+      return json(res, 400, {
+        success: false,
+        saved: false,
+        message: "Invalid phone number",
+      });
+    }
+
+    const attribution =
+      input.attribution && typeof input.attribution === "object"
+        ? input.attribution
+        : {};
+
+    // Send only the data needed by the manager and the three agreed UTM fields.
+    const lead = {
+      name,
+      phone,
+      city: clean(input.city, 120),
+      channel: clean(input.channel || "phone", 30),
+      category,
+      categoryLabel,
+      need,
+      context: clean(input.context, 700),
+      priorities: Array.isArray(input.priorities)
+        ? input.priorities.slice(0, 8).map((value) => clean(value, 160))
+        : [],
+      budget,
+      timing,
+      attribution: {
+        utm_source: clean(attribution.utm_source, 300),
+        utm_medium: clean(attribution.utm_medium, 300),
+        utm_content: clean(attribution.utm_content, 500),
+      },
+    };
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), N8N_TIMEOUT_MS);
+
+    let webhookResponse;
+    try {
+      webhookResponse = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-soco-secret": webhookSecret,
+        },
+        body: JSON.stringify(lead),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    const responseText = await webhookResponse.text().catch(() => "");
+
+    if (!webhookResponse.ok) {
+      console.error(
+        "SOCO lead API: n8n returned",
+        webhookResponse.status,
+        responseText.slice(0, 300)
+      );
+      return json(res, 502, {
+        success: false,
+        saved: false,
+        message: "Lead delivery failed",
+      });
+    }
+
+    return json(res, 200, {
+      success: true,
+      saved: true,
+    });
+  } catch (error) {
+    const timedOut = error && error.name === "AbortError";
+    console.error("SOCO lead API error:", timedOut ? "n8n timeout" : error);
+
+    return json(res, timedOut ? 504 : 500, {
+      success: false,
+      saved: false,
+      message: timedOut
+        ? "Lead service timed out"
+        : "Internal server error",
+    });
+  }
+};
